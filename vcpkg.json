@@ -1,0 +1,7 @@
+{
+    "name": "semanticslam",
+    "version": "1.0.0",
+    "dependencies": [
+        "fmt"
+    ]   
+}
