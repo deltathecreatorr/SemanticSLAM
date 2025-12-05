@@ -10,7 +10,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+#UPDATE THIS LINE WHEN ADDING DEPENDENCIES
 find_package(fmt CONFIG REQUIRED)
+#find_package(libtorch CONFIG REQUIRED)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -33,6 +35,7 @@ target_compile_definitions(slam PRIVATE
 
 target_link_libraries(slam PRIVATE
     fmt::fmt
+    #libtorch::libtorch
 )
 
 if (MSVC)
