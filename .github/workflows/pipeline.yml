@@ -9,10 +9,6 @@ jobs:
         runs-on: self-hosted
         
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
-              with:
-                submodules: recursive
             
             - name: Pull Latest Code
               working-directory: /home/delta/pi
