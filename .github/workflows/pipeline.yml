@@ -1,0 +1,30 @@
+name: SemanticSLAM CI
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    build:
+        runs-on: self-hosted
+        
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+              with:
+                submodules: recursive
+
+            - name: Configure CMake
+              run: |
+                mkdir -p build
+                cmake -S . -B build \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DCMAKE_PREFIX_PATH=/opt/libtorch \
+                    -DVCPKG_TARGET_TRIPLET=arm64-linux
+
+            - name: Build
+              run: cmake --build build --config Release
+
+            - name: Restart Robot Service
+              run: |
+                sudo systemctl restart semantic_slam
