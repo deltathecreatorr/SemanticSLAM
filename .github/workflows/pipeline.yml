@@ -1,0 +1,35 @@
+name: SemanticSLAM CI
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    build:
+        runs-on: self-hosted
+        
+        steps:
+            
+            - name: Pull Latest Code
+              working-directory: /home/delta/pi
+              run: |
+                git pull origin main
+                git submodule update --recursive
+
+            - name: Configure CMake
+              working-directory: /home/delta/pi
+              run: |
+                mkdir -p build
+                cmake -S . -B build \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DCMAKE_PREFIX_PATH=/opt/libtorch \
+                    -DVCPKG_TARGET_TRIPLET=arm64-linux
+
+            - name: Build Project
+              working-directory: /home/delta/pi
+              run: cmake --build build --config Release
+
+            - name: Restart Robot Service
+              working-directory: /home/delta/pi
+              run: |
+                sudo systemctl restart semantic_slam
