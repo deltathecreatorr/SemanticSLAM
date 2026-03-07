@@ -2,10 +2,6 @@
   "name": "semanticslam",
   "version": "1.0.0",
   "dependencies": [
-        "fmt",
-        { 
-          "name": "libtorch",
-          "default-features": false
-        }
+        "fmt"
     ]
 }
