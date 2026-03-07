@@ -15,7 +15,6 @@ jobs:
                 submodules: recursive
 
             - name: Configure CMake
-              working-directory: SemanticSLAM
               run: |
                 mkdir -p build
                 cmake -S . -B build \
@@ -24,10 +23,8 @@ jobs:
                     -DVCPKG_TARGET_TRIPLET=arm64-linux
 
             - name: Build Project
-              working-directory: SemanticSLAM
               run: cmake --build build --config Release
 
             - name: Restart Robot Service
-              working-directory: SemanticSLAM
               run: |
                 sudo systemctl restart semantic_slam
