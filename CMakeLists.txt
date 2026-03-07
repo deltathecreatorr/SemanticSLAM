@@ -36,6 +36,9 @@ target_compile_definitions(slam PRIVATE
 target_link_libraries(slam PRIVATE
     fmt::fmt
     torch
+    pigpio
+    rt
+    pthread
 )
 
 if (MSVC)
