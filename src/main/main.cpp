@@ -16,10 +16,7 @@ int gpio_handle = -1;
 void setupMotors() {
     std::cout << "Initializing lgpio for Raspberry Pi 5..." << std::endl;
 
-    gpio_handle = lgGpiochipOpen(0); 
-    if (gpio_handle < 0) {
-        gpio_handle = lgGpiochipOpen(4);
-    }
+    gpio_handle = lgGpiochipOpen(4);
 
     if (gpio_handle < 0) {
         std::cerr << "Failed to initialize GPIO chip. Are you running as root?" << std::endl;
