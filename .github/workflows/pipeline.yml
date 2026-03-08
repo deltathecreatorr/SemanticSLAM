@@ -22,8 +22,12 @@ jobs:
                     -DCMAKE_PREFIX_PATH=/opt/libtorch \
                     -DVCPKG_TARGET_TRIPLET=arm64-linux \
                     -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath=/opt/libtorch/lib -Wl,-rpath-link=/opt/libtorch/lib"
-            - name: Build Project
-              run: cmake --build build --config Release
+
+            - name: Build Project 
+              run: |
+                export LD_LIBRARY_PATH=/opt/libtorch/lib:$LD_LIBRARY_PATH
+                export LIBRARY_PATH=/opt/libtorch/lib:$LIBRARY_PATH
+                cmake --build build --config Release
 
             - name: Deploy Executable
               run: |
