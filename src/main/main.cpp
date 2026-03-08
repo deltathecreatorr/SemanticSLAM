@@ -3,7 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
-#include <pigpio.h>
+#include <lgpio.h>
 
 const int LEFT_IN1 = 17;
 const int LEFT_IN2 = 27;
@@ -11,34 +11,41 @@ const int LEFT_IN2 = 27;
 const int RIGHT_IN1 = 22;
 const int RIGHT_IN2 = 23;
 
-void setupMotors() {
-    fmt::print("Motors setup complete.\n");
+int gpio_handle = -1;
 
-    if (gpioInitialise() < 0) {
-        fmt::print("Failed to initialize GPIO.\n");
-        return;
+void setupMotors() {
+    std::cout << "Initializing lgpio for Raspberry Pi 5..." << std::endl;
+
+    gpio_handle = lgGpiochipOpen(0); 
+    if (gpio_handle < 0) {
+        gpio_handle = lgGpiochipOpen(4);
     }
 
-    gpioSetMode(LEFT_IN1, PI_OUTPUT);
-    gpioSetMode(LEFT_IN2, PI_OUTPUT);
-    gpioSetMode(RIGHT_IN1, PI_OUTPUT);
-    gpioSetMode(RIGHT_IN2, PI_OUTPUT);
+    if (gpio_handle < 0) {
+        std::cerr << "Failed to initialize GPIO chip. Are you running as root?" << std::endl;
+        exit(1);
+    }
+    
+    lgGpioClaimOutput(gpio_handle, 0, LEFT_IN1, 0);
+    lgGpioClaimOutput(gpio_handle, 0, LEFT_IN2, 0);
+    lgGpioClaimOutput(gpio_handle, 0, RIGHT_IN1, 0);
+    lgGpioClaimOutput(gpio_handle, 0, RIGHT_IN2, 0);
 }
 
 void spinMotors() {
     fmt::print("Motors are spinning.\n");
-    gpioWrite(LEFT_IN1, 1);
-    gpioWrite(LEFT_IN2, 0);
-    gpioWrite(RIGHT_IN1, 1);
-    gpioWrite(RIGHT_IN2, 0);
+    lgGpioWrite(gpio_handle, LEFT_IN1, 1);
+    lgGpioWrite(gpio_handle, LEFT_IN2, 0);
+    lgGpioWrite(gpio_handle, RIGHT_IN1, 1);
+    lgGpioWrite(gpio_handle, RIGHT_IN2, 0);
 }
 
 void stopMotors() {
     fmt::print("Motors stopped.\n");
-    gpioWrite(LEFT_IN1, 0);
-    gpioWrite(LEFT_IN2, 0);
-    gpioWrite(RIGHT_IN1, 0);
-    gpioWrite(RIGHT_IN2, 0);
+    lgGpioWrite(gpio_handle, LEFT_IN1, 0);
+    lgGpioWrite(gpio_handle, LEFT_IN2, 0);
+    lgGpioWrite(gpio_handle, RIGHT_IN1, 0);
+    lgGpioWrite(gpio_handle, RIGHT_IN2, 0);
 }
 
 int main() {
@@ -54,6 +61,6 @@ int main() {
         std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 
-    gpioTerminate();
+    lgGpiochipClose(gpio_handle);
     return 0;
 }
