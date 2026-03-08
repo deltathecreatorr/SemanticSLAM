@@ -19,9 +19,7 @@ jobs:
                 mkdir -p build
                 cmake -S . -B build \
                     -DCMAKE_BUILD_TYPE=Release \
-                    -DCMAKE_PREFIX_PATH=/opt/libtorch \
                     -DVCPKG_TARGET_TRIPLET=arm64-linux \
-                    -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath=/opt/libtorch/lib -Wl,-rpath-link=/opt/libtorch/lib"
 
             - name: Build Project 
               run: |

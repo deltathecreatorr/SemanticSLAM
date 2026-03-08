@@ -12,7 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 #UPDATE THIS LINE WHEN ADDING DEPENDENCIES
 find_package(fmt CONFIG REQUIRED)
-find_package(Torch CONFIG REQUIRED)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -35,7 +34,6 @@ target_compile_definitions(slam PRIVATE
 
 target_link_libraries(slam PRIVATE
     fmt::fmt
-    torch
     pigpio
     rt
     pthread
