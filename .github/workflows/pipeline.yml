@@ -25,6 +25,12 @@ jobs:
             - name: Build Project
               run: cmake --build build --config Release
 
+            - name: Deploy Executable
+              run: |
+                mkdir -p /home/delta/pi/SemanticSLAM/build
+                cp build/slam /home/delta/pi/SemanticSLAM/build/slam
+                chmod +x /home/delta/pi/SemanticSLAM/build/slam
+
             - name: Restart Robot Service
               run: |
                 sudo systemctl restart semantic_slam
