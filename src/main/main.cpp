@@ -34,9 +34,19 @@ int main() {
     setup();
     fmt::print("4WD Test Starting...\n");
     
-    move(1); // Motors ON
+    move(1); 
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    move(0); // Motors OFF
+    move(0); 
+
+    fmt::print("4WD Test sequence complete. Service staying alive for commands...\n");
+
+    // KEEP THE SERVICE ALIVE
+    while(true) {
+        // This loop prevents the program from exiting.
+        // In the future, this is where your SLAM logic or 
+        // ROS2 node spinning will happen.
+        std::this_thread::sleep_for(std::chrono::hours(1));
+    }
 
     lgGpiochipClose(gpio_handle);
     return 0;
