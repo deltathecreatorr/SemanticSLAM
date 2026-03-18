@@ -1,76 +1,43 @@
 #include <fmt/core.h>
-#include <slam/slam.h>
 #include <thread>
 #include <chrono>
-#include <iostream>
 #include <lgpio.h>
 
-const int LEFT_IN1 = 17;
-const int LEFT_IN2 = 27;
-const int RIGHT_IN1 = 22;
-const int RIGHT_IN2 = 23;
-
-// The pin we used to fix the short circuit!
-const int OE_PIN = 12; 
+// BCM Pin Definitions
+const int FL_IN1 = 17; const int FL_IN2 = 27;
+const int FR_IN1 = 22; const int FR_IN2 = 23;
+const int BL_IN1 = 24; const int BL_IN2 = 25;
+const int BR_IN1 = 8;  const int BR_IN2 = 7;
 
 int gpio_handle = -1;
 
-void setupMotors() {
-    std::cout << "Initializing lgpio for Raspberry Pi 5..." << std::endl;
+void setup() {
+    gpio_handle = lgGpiochipOpen(4); // Pi 5 RP1 Chip
+    if (gpio_handle < 0) exit(1);
 
-    // Open the Pi 5 RP1 GPIO chip
-    gpio_handle = lgGpiochipOpen(4);
-
-    if (gpio_handle < 0) {
-        std::cerr << "Failed to initialize GPIO chip. Are you running with sudo?" << std::endl;
-        exit(1);
+    int pins[] = {FL_IN1, FL_IN2, FR_IN1, FR_IN2, BL_IN1, BL_IN2, BR_IN1, BR_IN2};
+    for(int p : pins) {
+        lgGpioClaimOutput(gpio_handle, 0, p, 0);
     }
-    
-    // Claim the motor pins
-    lgGpioClaimOutput(gpio_handle, 0, LEFT_IN1, 0);
-    lgGpioClaimOutput(gpio_handle, 0, LEFT_IN2, 0);
-    lgGpioClaimOutput(gpio_handle, 0, RIGHT_IN1, 0);
-    lgGpioClaimOutput(gpio_handle, 0, RIGHT_IN2, 0);
-
-    // CLAIM AND WAKE UP THE LEVEL SHIFTER
-    lgGpioClaimOutput(gpio_handle, 0, OE_PIN, 0);
-    lgGpioWrite(gpio_handle, OE_PIN, 1); // Send 3.3V to OE to open the gates
-    std::cout << "Level shifter awake!" << std::endl;
-    
-    // Give the chip 50 milliseconds to stabilize before sending motor commands
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 
-void spinMotors() {
-    fmt::print("Motors are spinning.\n");
-    lgGpioWrite(gpio_handle, LEFT_IN1, 1);
-    lgGpioWrite(gpio_handle, LEFT_IN2, 0);
-    lgGpioWrite(gpio_handle, RIGHT_IN1, 1);
-    lgGpioWrite(gpio_handle, RIGHT_IN2, 0);
-}
-
-void stopMotors() {
-    fmt::print("Motors stopped.\n");
-    lgGpioWrite(gpio_handle, LEFT_IN1, 0);
-    lgGpioWrite(gpio_handle, LEFT_IN2, 0);
-    lgGpioWrite(gpio_handle, RIGHT_IN1, 0);
-    lgGpioWrite(gpio_handle, RIGHT_IN2, 0);
+void move(int state) {
+    // Left side Forward
+    lgGpioWrite(gpio_handle, FL_IN1, state); lgGpioWrite(gpio_handle, FL_IN2, 0);
+    lgGpioWrite(gpio_handle, BL_IN1, state); lgGpioWrite(gpio_handle, BL_IN2, 0);
+    // Right side Forward
+    lgGpioWrite(gpio_handle, FR_IN1, state); lgGpioWrite(gpio_handle, FR_IN2, 0);
+    lgGpioWrite(gpio_handle, BR_IN1, state); lgGpioWrite(gpio_handle, BR_IN2, 0);
 }
 
 int main() {
-    fmt::print("Is this test for the CI/CD pipeline working rn?\n");
+    setup();
+    fmt::print("4WD Test Starting...\n");
     
-    setupMotors();
-    spinMotors();
-
-    // Spin for 2 seconds
+    move(1); // Motors ON
     std::this_thread::sleep_for(std::chrono::seconds(2));
+    move(0); // Motors OFF
 
-    stopMotors();
-
-    // Clean up before exiting (Highly recommended so motors don't get stuck on!)
     lgGpiochipClose(gpio_handle);
-    fmt::print("Test complete. Exiting.\n");
-    
     return 0;
 }
