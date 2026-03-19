@@ -12,7 +12,7 @@ const int BR_IN1 = 8;  const int BR_IN2 = 7;
 int gpio_handle = -1;
 
 void setup() {
-    gpio_handle = lgGpiochipOpen(0); // Pi 5 RP1 Chip
+    gpio_handle = lgGpiochipOpen(4); // Pi 5 RP1 Chip
     if (gpio_handle < 0) exit(1);
 
     int pins[] = {FL_IN1, FL_IN2, FR_IN1, FR_IN2, BL_IN1, BL_IN2, BR_IN1, BR_IN2};
