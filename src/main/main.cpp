@@ -7,7 +7,7 @@
 const int FL_IN1 = 17; const int FL_IN2 = 27;
 const int FR_IN1 = 22; const int FR_IN2 = 23;
 const int BL_IN1 = 24; const int BL_IN2 = 25;
-const int BR_IN1 = 7;  const int BR_IN2 = 8;
+const int BR_IN1 = 8;  const int BR_IN2 = 7;
 
 int gpio_handle = -1;
 
