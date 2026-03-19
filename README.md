@@ -31,8 +31,14 @@ Afterwards, use the commands:
 * [7.2 Ni-MH Battery Pack](https://thepihut.com/products/tt-motor-with-encoder-6v-160rpm-120-1)
 * [OKDO Lidar Hat for the Raspberry PI](https://uk.rs-online.com/web/p/sensor-development-tools/2037609)
 * [8-Channel Logic Level Converter Bi-directional Converter](https://www.amazon.co.uk/DollaTek-Channel-Bi-directional-Converter-TXS0108E/dp/B07DK6QGHG?crid=S5TQWTC5NRIN&dib=eyJ2IjoiMSJ9.1CE4b0dkFsEPCG2fmbxsUV8_m9kvFHZ5gD6jM0pFrV5qNLAENTCtQ8vgsc7HGDXzTc3WsrcizZEJ2vcWHEQKohpznySr4jaaKHV80H_TTY9F8ZgUkRRlZ9Uz-OjQ9XGy8Cjb-kbQHLenoSmB3KJMAIcUmWcAnKlI58B9H4322B5GvYJb0oRu4eWIucBxW8gXAEyKg5aQPMso1TLn4OZwJWTPKSCTPvySD6FfVj5o-Fv7_-9o98VOXpP_1YwPkTxobT9xmko-OS2EeFIDa4bhjfqOveusZGTovivWeCHvhmM.Iu3RCIus-Y62_KzBzLlUzOrwToNR0qncwUowhD6-Kws&dib_tag=se&keywords=dollatek+logic+level+converter&qid=1772892667&sprefix=dollatek+logic+level+convert%2Caps%2C228&sr=8-1)
+* [Dollatek MPU-6050 Inertial Measurement Unit](https://www.amazon.co.uk/DollaTek-MPU-6050-mpu6050-Accelerometer-Arduino/dp/B07DJ4KMBF?crid=3IIHAC5K5TAJS&dib=eyJ2IjoiMSJ9.AD3UVa4HQO0WjS3ZhZH_5k4BSWfYpejUI-FgRuhNWr5ZZYuMRVjefJFODQQ23Qyk0lrRnF77RN9C1iCO22gYrVAuU--vQlnVv872_gkfVWpl5M5z52UbrUsPQOG13m2tW5PgYqnn8qm3yqYAhSOOdY1hMZkP7v84VPnl4jxDRLRNtFXUJX_WUEvP0iwhY3tuZOLNpN0CDcROyBUfSuxOwSzUATrlRx3JsZSUPH_ukyJ6iuM2fm6-PTseKhHJx37ZIprvYOkwvdDdKtJPFiF180SF6JSB0sHp9tRG4-BEthE.GqEzbJoANyYypNNDUlEHJUZ4_wOJBVIcOHcThXbJhk0&dib_tag=se&keywords=dollatek+mpu-6050&qid=1773937329&sprefix=dollatek+mpu-6050%2Caps%2C266&sr=8-1)
+
+## Wiring Diagram
+![Wiring Diagram for the Semantic SLAM robot.](images/wiring.svg)
 
 ## License
 
 This project is licensed under the MiT License - see the LICENSE.md file for details.
+
+
 

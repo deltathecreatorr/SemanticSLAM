@@ -24,15 +24,9 @@ jobs:
             - name: Build Project 
               run: |
                 cmake --build build --config Release
-
-            - name: Stop Robot Service
-              run: sudo systemctl stop semantic_slam || true
-
+                
             - name: Deploy Executable
               run: |
                 mkdir -p /home/delta/pi/SemanticSLAM/build
                 cp build/slam /home/delta/pi/SemanticSLAM/build/slam
                 chmod +x /home/delta/pi/SemanticSLAM/build/slam
-
-            - name: Start Robot Service
-              run: sudo systemctl start semantic_slam
