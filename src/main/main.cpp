@@ -54,9 +54,9 @@ int main() {
 
     fmt::print("--- Starting Individual Wheel Roll Call ---\n");
     
-    testMotor("FRONT LEFT",  FL_IN1, FL_IN2);
-    testMotor("FRONT RIGHT", FR_IN1, FR_IN2);
-    testMotor("BACK LEFT",   BL_IN1, BL_IN2);
+    testMotor("BACK LEFT",  FL_IN1, FL_IN2);
+    testMotor("FRONT LEFT", FR_IN1, FR_IN2);
+    testMotor("FRONT RIGHT",   BL_IN1, BL_IN2);
     testMotor("BACK RIGHT",  BR_IN1, BR_IN2);
 
     fmt::print("--- All tests complete. Keeping service alive. ---\n");
