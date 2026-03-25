@@ -10,7 +10,7 @@ The SLAM algorithm will be complimented by a deep learning model that will class
 
 ## Poster
 
-![Poster for this Project](images/poster-1.pdf)
+![Poster for this Project](images/poster.png)
 
 ## Building
 
