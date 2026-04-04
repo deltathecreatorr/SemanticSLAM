@@ -8,6 +8,10 @@ This project is dedicated to building a SLAM algorithm that utilises data from a
 
 The SLAM algorithm will be complimented by a deep learning model that will classify objects it sees from a live camera feed. The camera module used is able to run a CNN on it, allowing the main system to bear the overhead of running a deep learning model at the same time. The deep learning model is trained on publicly found datasets of household objects, as the main environment this robot will be used in is a household.
 
+## Poster
+
+![Poster for this Project](images/poster.png)
+
 ## Building
 
 This project can be built on any operating system supported by CMake.
