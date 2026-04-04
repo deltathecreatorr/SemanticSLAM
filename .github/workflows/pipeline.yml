@@ -16,6 +16,7 @@ jobs:
 
             - name: Configure CMake
               run: |
+                source /opt/ros/jazzy/setup.bash
                 mkdir -p build
                 cmake -S . -B build \
                     -DCMAKE_BUILD_TYPE=Release \
@@ -23,6 +24,7 @@ jobs:
 
             - name: Build Project 
               run: |
+                source /opt/ros/jazzy/setup.bash
                 cmake --build build --config Release
                 
             - name: Deploy Executable
