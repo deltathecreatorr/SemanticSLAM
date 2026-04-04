@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 #UPDATE THIS LINE WHEN ADDING DEPENDENCIES
 find_package(fmt CONFIG REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -37,6 +39,8 @@ target_link_libraries(slam PRIVATE
     lgpio
     rt
     pthread
+    rclcpp::rclcpp
+    ${sensor_msgs_TARGETS}
 )
 
 if (MSVC)

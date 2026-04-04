@@ -8,14 +8,14 @@ int main() {
     setup();
 
     std::cout << "Moving Forward..." << std::endl;
-    moveForward(5);
+    moveForward(2);
 
-    allStop(5);
+    allStop(2);
 
     std::cout << "Moving Backward..." << std::endl;
-    moveBackward(5);
+    moveBackward(2);
 
-    allStop(5);
+    allStop(2);
     std::cout << "Done." << std::endl;
 
     return 0;
