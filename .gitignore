@@ -74,3 +74,4 @@ ipch/
 *.scc
 
 build/
+robot_env/
