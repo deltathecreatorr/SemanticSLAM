@@ -1,11 +1,11 @@
-#include "movementScripts.h"
+#include "movementScripts.hpp"
 #include <iostream>
 #include <lgpio.h>
 #include <fmt/core.h>
 #include <thread>
 
-const int BL_IN1 = 17; const int BL_IN2 = 27;
-const int FL_IN1 = 23; const int FL_IN2 = 22;
+const int BL_IN1 = 27; const int BL_IN2 = 17;
+const int FL_IN1 = 22; const int FL_IN2 = 23;
 const int FR_IN1 = 25; const int FR_IN2 = 24;
 const int BR_IN1 = 7;  const int BR_IN2 = 8;
 
