@@ -1,22 +1,31 @@
-#include <iostream>
-#include <thread>
-#include <chrono>
+#include <rclcpp/rclcpp.hpp>
 
-#include "movementScripts/movementScripts.h"
+#include "sensor_pkgs/pico_link/pico_link.hpp"
+#include "sensor_pkgs/pico_link/IMU_pkg/IMU_node.hpp"
+#include "sensor_pkgs/pico_link/encoder_pkg/encoder_node.hpp"
+#include "sensor_pkgs/pico_link/driver_pkg/driver_node.hpp"
 
-int main() {
-    setup();
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
 
-    std::cout << "Moving Forward..." << std::endl;
-    moveForward(2);
+    auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    
+    auto driver_node = std::make_shared<DriverNode>();
 
-    allStop(2);
+    auto pico_link = std::make_shared<PicoLink>();
 
-    std::cout << "Moving Backward..." << std::endl;
-    moveBackward(2);
+    auto imu_node = std::make_shared<IMUNode>();
 
-    allStop(2);
-    std::cout << "Done." << std::endl;
+    auto encoder_node = std::make_shared<EncoderNode>();
 
+    executor->add_node(driver_node);
+    executor->add_node(pico_link);
+    executor->add_node(imu_node);
+    executor->add_node(encoder_node);
+
+    RCLCPP_INFO(rclcpp::get_logger("main"), "Starting the executor...");
+
+    executor->spin();
+    rclcpp::shutdown();
     return 0;
 }

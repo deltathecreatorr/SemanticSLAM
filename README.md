@@ -18,11 +18,17 @@ This project can be built on any operating system supported by CMake.
 
 Clone the repository and please install the CMake compiler before trying to build this project.
 
-Afterwards, use the commands:
+In a different terminal, run the ros2 lidar node so it can be read by the SLAM program:
+
+```ros2 launch ldlidar_stl_ros2 ld06.launch.py```
+
+
+Afterwards, use the commands to run the main SLAM algorithm:
 
 ```cmake --build build```
  then 
 ```.build\Debug\slam.exe```
+
 
 ## Robot Car Parts
 

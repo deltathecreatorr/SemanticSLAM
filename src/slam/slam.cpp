@@ -1,6 +1,6 @@
 
 #include <fmt/core.h>
-#include "slam.h"
+#include "slam.hpp"
 
 int slam() {
     fmt::print("SLAM module initialized.\n");
