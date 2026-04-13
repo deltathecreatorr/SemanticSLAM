@@ -12,17 +12,24 @@ void initMotors() {
 }
 
 void driveMotor(int in1, int in2, int speed) {
-    int pwmValue = constrain(abs(speed), 0, 255);
-    
+    if (speed == 0) {
+        analogWrite(in1, 0);
+        analogWrite(in2, 0);
+        return;
+    }
+
+    int pwmValue = constrain(abs(speed), 0, 120);
+
+    if (pwmValue < 60) {
+        pwmValue = 60; 
+    }
+
     if (speed > 0) {
         analogWrite(in1, pwmValue);
         analogWrite(in2, 0);
     } else if (speed < 0) {
         analogWrite(in1, 0); 
         analogWrite(in2, pwmValue);
-    } else {
-        analogWrite(in1, 0);
-        analogWrite(in2, 0);
     }
 }
 

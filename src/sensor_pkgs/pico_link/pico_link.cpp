@@ -122,8 +122,10 @@ void PicoLink::process_line(const std::string& line) {
 void PicoLink::cmd_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     if (fd_ == -1) return;
 
-    int left = static_cast<int>((msg->linear.x - msg->angular.z) * 255);
-    int right = static_cast<int>((msg->linear.x + msg->angular.z) * 255);
+    int max_speed = this->get_parameter("MAX_SPEED").as_int();
+
+    int left = static_cast<int>((msg->linear.x - msg->angular.z) * max_speed);
+    int right = static_cast<int>((msg->linear.x + msg->angular.z) * max_speed);
 
     left = std::clamp(left, -255, 255);
     right = std::clamp(right, -255, 255);

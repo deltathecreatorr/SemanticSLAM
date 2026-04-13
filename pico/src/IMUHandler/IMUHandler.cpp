@@ -25,6 +25,9 @@ void streamIMUData() {
         Serial.print(imu.getAccelZ_mss(), 4); Serial.print(",");
         Serial.print(imu.getGyroX_rads(), 4); Serial.print(",");
         Serial.print(imu.getGyroY_rads(), 4); Serial.print(",");
-        Serial.println(imu.getGyroZ_rads(), 4);
+        Serial.print(imu.getGyroZ_rads(), 4); Serial.print(",");
+        Serial.print(imu.getMagX_uT(), 4); Serial.print(",");
+        Serial.print(imu.getMagY_uT(), 4); Serial.print(",");
+        Serial.println(imu.getMagZ_uT(), 4);
     }
 }
