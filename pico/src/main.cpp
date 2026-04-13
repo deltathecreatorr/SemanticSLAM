@@ -4,7 +4,10 @@
 #include <Arduino.h>
 
 unsigned long lastStreamTime = 0;
-const int PUBLISH_INTERVAL_MS = 100;
+const int PUBLISH_INTERVAL_MS = 20;
+
+char inputBuffer[64];
+int bufferIndex = 0;
 
 void setup() {
     Serial.begin(115200);
@@ -19,19 +22,26 @@ void setup() {
     }
 }
 
+void processCommand(char* cmd) {
+    if (cmd[0] == 'M') {
+        int fl, rl, fr, rr;
+        int parsed = sscanf(cmd, "M,%d,%d,%d,%d", &fl, &rl, &fr, &rr);
+        if (parsed == 4) {
+            setMotorSpeeds(fl, rl, fr, rr);
+        }
+    }
+}
+
 void loop() {
 
-    if (Serial.available() > 0) {
-        String cmd = Serial.readStringUntil('\n');
-        if (cmd.startsWith("M,")) {
-            int fl, rl, fr, rr;
-            int parsed = sscanf(cmd.c_str(), "M,%d,%d,%d,%d", &fl, &rl, &fr, &rr);
-
-            if (parsed == 4) {
-                setMotorSpeeds(fl, rl, fr, rr);
-            } else {
-                Serial.println("Invalid motor command format. Expected: M,fl_speed,rl_speed,fr_speed,rr_speed");
-            }
+    while (Serial.available() > 0) {
+        char c = Serial.read();
+        if (c == '\n' || c == '\r') {
+            inputBuffer[bufferIndex] = '\0'; // Terminate string
+            processCommand(inputBuffer);
+            bufferIndex = 0; // Reset for next command
+        } else if (bufferIndex < 63) {
+            inputBuffer[bufferIndex++] = c;
         }
     }
 
