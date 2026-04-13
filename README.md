@@ -22,12 +22,14 @@ In a different terminal, run the ros2 lidar node so it can be read by the SLAM p
 
 ```ros2 launch ldlidar_stl_ros2 ld06.launch.py```
 
-
 Afterwards, use the commands to run the main SLAM algorithm:
 
 ```cmake --build build```
  then 
-```.build\Debug\slam.exe```
+```./build/slam```
+
+Also run slam toolbox with the slam.yaml file using the command
+```ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./slam.yaml```
 
 
 ## Robot Car Parts

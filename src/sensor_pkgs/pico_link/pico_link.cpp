@@ -8,6 +8,8 @@
 PicoLink::PicoLink() : Node("pico_link") {
     setup_serial();
 
+    this->declare_parameter("MAX_SPEED", 120);
+
     imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("imu/data_raw", 10);
     mag_pub_ = this->create_publisher<sensor_msgs::msg::MagneticField>("imu/mag", 10);
     enc_pub_ = this->create_publisher<std_msgs::msg::Int32MultiArray>("wheel_ticks", 10);
