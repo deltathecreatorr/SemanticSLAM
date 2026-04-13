@@ -8,11 +8,17 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
+#include <mutex>
 
 class EncoderNode : public rclcpp::Node {
     public:
         EncoderNode();
     private:
+        std::mutex state_mutex_;
+
+        rclcpp::CallbackGroup::SharedPtr encoder_cbg_;
+        rclcpp::CallbackGroup::SharedPtr cmd_cbg_;
+
         void encoder_callback(const std_msgs::msg::Int32MultiArray::SharedPtr msg);
 
         void cmd_callback(const geometry_msgs::msg::Twist::SharedPtr msg);

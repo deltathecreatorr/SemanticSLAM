@@ -5,11 +5,19 @@
 
 
 EncoderNode::EncoderNode() : Node("encoder_processor_node") {
-    sub_ = this->create_subscription<std_msgs::msg::Int32MultiArray>(
-        "wheel_ticks", 10, std::bind(&EncoderNode::encoder_callback, this, std::placeholders::_1));
 
+    encoder_cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    cmd_cbg_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
+    auto encoder_opt = rclcpp::SubscriptionOptions();
+    encoder_opt.callback_group = encoder_cbg_;
+    sub_ = this->create_subscription<std_msgs::msg::Int32MultiArray>(
+        "wheel_ticks", 10, std::bind(&EncoderNode::encoder_callback, this, std::placeholders::_1), encoder_opt);
+
+    auto cmd_opt = rclcpp::SubscriptionOptions();
+    cmd_opt.callback_group = cmd_cbg_;
     cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-        "cmd_vel", 10, std::bind(&EncoderNode::cmd_callback, this, std::placeholders::_1));
+        "cmd_vel", 10, std::bind(&EncoderNode::cmd_callback, this, std::placeholders::_1), cmd_opt);
     
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
@@ -17,25 +25,14 @@ EncoderNode::EncoderNode() : Node("encoder_processor_node") {
 
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
-    static_tf_broadcaster_ = std::make_unique<tf2_ros::StaticTransformBroadcaster>(*this);
-
     x_ = 0.0;
     y_ = 0.0;
     theta_ = 0.0;
     prev_left_ticks_ = 0.0;
     prev_right_ticks_ = 0.0;
-    last_time_ = this->now();
+
+    last_time_ = rclcpp::Clock(RCL_SYSTEM_TIME).now();
     first_read_ = true;
-
-    geometry_msgs::msg::TransformStamped static_transform;
-    static_transform.header.stamp = this->now();
-    static_transform.header.frame_id = "base_link";   
-    static_transform.child_frame_id = "base_laser";
-
-    static_transform.transform.translation.x = 0.0;   
-    static_transform.transform.translation.y = 0.0;  
-    static_transform.transform.translation.z = 0.18;   
-    static_transform.transform.rotation.w = 1.0;
 
     RCLCPP_INFO(this->get_logger(), "Encoder Node Initialized");
 }
@@ -44,6 +41,8 @@ void EncoderNode::cmd_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
 
     double linear_v = msg->linear.x;  
     double angular_v = msg->angular.z;
+
+    std::lock_guard<std::mutex> lock(state_mutex_);
 
     target_vel_l_ = linear_v- (angular_v * TRACK_WIDTH / 2.0);
     target_vel_r_ = linear_v + (angular_v * TRACK_WIDTH / 2.0);
@@ -61,7 +60,7 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
         return;
     }
 
-    rclcpp::Time current_time = this->now();
+    rclcpp::Time current_time = rclcpp::Clock(RCL_SYSTEM_TIME).now();
 
     double current_left_ticks = (msg->data[0] + msg->data[1]) / 2.0;
     double current_right_ticks = (msg->data[2] + msg->data[3]) / 2.0;
@@ -86,23 +85,31 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
     double dt = (current_time - last_time_).seconds();
     
     if (dt > 0) {
-        if (target_vel_l_ == 0 && target_vel_r_ == 0) {
-            e_Sum_l_r = 0.0;
-            e_Sum_r_r = 0.0;
-        }
-
         double v_l_actual = delta_left / dt;
         double v_r_actual = delta_right / dt;
 
-        double error_l = target_vel_l_ - v_l_actual;
-        e_Sum_l_r += error_l * dt;
-        double d_error_l = (error_l - prev_e_l_) / dt;
-        int pwm_l = (Kp * error_l) + (Ki * e_Sum_l_r) + (Kd * d_error_l);
+        int pwm_l = 0;
+        int pwm_r = 0;
+        {
+            std::lock_guard<std::mutex> lock(state_mutex_);
+            
+            if (target_vel_l_ == 0.0 && target_vel_r_ == 0.0) {
+                e_Sum_l_r = 0.0;
+                e_Sum_r_r = 0.0;
+            }
 
-        double error_r = target_vel_r_ - v_r_actual;
-        e_Sum_r_r += error_r * dt;
-        double d_error_r = (error_r - prev_e_r_) / dt;
-        int pwm_r = (Kp * error_r) + (Ki * e_Sum_r_r) + (Kd * d_error_r);
+            double error_l = target_vel_l_ - v_l_actual;
+            e_Sum_l_r += error_l * dt;
+            double d_error_l = (error_l - prev_e_l_) / dt;
+            pwm_l = (Kp * error_l) + (Ki * e_Sum_l_r) + (Kd * d_error_l);
+            prev_e_l_ = error_l;
+
+            double error_r = target_vel_r_ - v_r_actual;
+            e_Sum_r_r += error_r * dt;
+            double d_error_r = (error_r - prev_e_r_) / dt;
+            pwm_r = (Kp * error_r) + (Ki * e_Sum_r_r) + (Kd * d_error_r);
+            prev_e_r_ = error_r;
+        }
 
         auto motor_msg = std_msgs::msg::Int32MultiArray();
         motor_msg.data = {
@@ -110,9 +117,6 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
             std::max(-255, std::min(255, pwm_r))
         };
         motor_pub_->publish(motor_msg);
-
-        prev_e_l_ = error_l;
-        prev_e_r_ = error_r;
         
     }
     
@@ -143,21 +147,32 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
 
     odom_pub_->publish(odom);
 
-    geometry_msgs::msg::TransformStamped transform;
-    transform.header.stamp = current_time;
-    transform.header.frame_id = "odom";
-    transform.child_frame_id = "base_link";
+    std::vector<geometry_msgs::msg::TransformStamped> transforms;
 
-    transform.transform.translation.x = x_;
-    transform.transform.translation.y = y_;
-    transform.transform.translation.z = 0.0;
+    geometry_msgs::msg::TransformStamped odm_transform;
+    odm_transform.header.stamp = current_time;
+    odm_transform.header.frame_id = "odom";
+    odm_transform.child_frame_id = "base_link";
 
-    transform.transform.rotation.x = q.x();
-    transform.transform.rotation.y = q.y();
-    transform.transform.rotation.z = q.z();
-    transform.transform.rotation.w = q.w();
+    odm_transform.transform.translation.x = x_;
+    odm_transform.transform.translation.y = y_;
+    odm_transform.transform.translation.z = 0.0;
 
-    tf_broadcaster_->sendTransform(transform);
+    odm_transform.transform.rotation.x = q.x();
+    odm_transform.transform.rotation.y = q.y();
+    odm_transform.transform.rotation.z = q.z();
+    odm_transform.transform.rotation.w = q.w();
+    transforms.push_back(odm_transform);
+
+    geometry_msgs::msg::TransformStamped laser_transform;
+    laser_transform.header.stamp = current_time;
+    laser_transform.header.frame_id = "base_link";
+    laser_transform.child_frame_id = "base_laser";
+    laser_transform.transform.translation.z = 0.18;
+    laser_transform.transform.rotation.w = 1.0;
+    transforms.push_back(laser_transform);
+
+    tf_broadcaster_->sendTransform(transforms);
 
     prev_left_ticks_ = current_left_ticks;
     prev_right_ticks_ = current_right_ticks;
