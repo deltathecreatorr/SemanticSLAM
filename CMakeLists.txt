@@ -18,6 +18,7 @@ find_package(nav_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -49,6 +50,7 @@ target_link_libraries(slam PRIVATE
     ${std_msgs_TARGETS}
     ${geometry_msgs_TARGETS}
     ${tf2_TARGETS}
+    ${tf2_ros_TARGETS}
 )
 
 if (MSVC)
