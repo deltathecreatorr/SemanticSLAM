@@ -109,6 +109,20 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
             double d_error_r = (error_r - prev_e_r_) / dt;
             pwm_r = (Kp * error_r) + (Ki * e_Sum_r_r) + (Kd * d_error_r);
             prev_e_r_ = error_r;
+
+            int min_pwm = 120;
+
+            if (target_vel_l_ > 0.0 && pwm_l < min_pwm) {
+                pwm_l = min_pwm;
+            } else if (target_vel_l_ < 0.0 && pwm_l > -min_pwm) {
+                pwm_l = -min_pwm;
+            }
+
+            if (target_vel_r_ > 0.0 && pwm_r < min_pwm) {
+                pwm_r = min_pwm;
+            } else if (target_vel_r_ < 0.0 && pwm_r > -min_pwm) {
+                pwm_r = -min_pwm;
+            }
         }
 
         auto motor_msg = std_msgs::msg::Int32MultiArray();

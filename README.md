@@ -28,9 +28,14 @@ Afterwards, use the commands to run the main SLAM algorithm:
  then 
 ```./build/slam```
 
-Also run slam toolbox with the slam.yaml file using the command
+Also run slam toolbox with the slam.yaml file using the command:
 ```ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./slam.yaml```
 
+Nav2 can be run using the command:
+```ros2 launch nav2_bringup navigation_launch.py use_sim_time:=false params_file:=./slam_nav2.yaml```
+
+Explore_lite can be run using this command:
+```ros2 launch explore_lite explore.launch.py use_sim_time:=false```
 
 ## Robot Car Parts
 
