@@ -163,20 +163,20 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
 
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
 
-    geometry_msgs::msg::TransformStamped odm_transform;
-    odm_transform.header.stamp = current_time;
-    odm_transform.header.frame_id = "odom";
-    odm_transform.child_frame_id = "base_link";
+    // geometry_msgs::msg::TransformStamped odm_transform;
+    // odm_transform.header.stamp = current_time;
+    // odm_transform.header.frame_id = "odom";
+    // odm_transform.child_frame_id = "base_link";
 
-    odm_transform.transform.translation.x = x_;
-    odm_transform.transform.translation.y = y_;
-    odm_transform.transform.translation.z = 0.0;
+    // odm_transform.transform.translation.x = x_;
+    // odm_transform.transform.translation.y = y_;
+    // odm_transform.transform.translation.z = 0.0;
 
-    odm_transform.transform.rotation.x = q.x();
-    odm_transform.transform.rotation.y = q.y();
-    odm_transform.transform.rotation.z = q.z();
-    odm_transform.transform.rotation.w = q.w();
-    transforms.push_back(odm_transform);
+    // odm_transform.transform.rotation.x = q.x();
+    // odm_transform.transform.rotation.y = q.y();
+    // odm_transform.transform.rotation.z = q.z();
+    // odm_transform.transform.rotation.w = q.w();
+    // transforms.push_back(odm_transform);
 
     geometry_msgs::msg::TransformStamped laser_transform;
     laser_transform.header.stamp = current_time;

@@ -28,6 +28,12 @@ Afterwards, use the commands to run the main SLAM algorithm:
  then 
 ```./build/slam```
 
+then
+```ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link imu_link```
+
+then
+```ros2 run robot_localization ekf_node --ros-args --params-file ~/pi/SemanticSLAM/ekf.yaml -r odometry/filtered:=odom```
+
 Also run slam toolbox with the slam.yaml file using the command:
 ```ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./slam.yaml```
 
