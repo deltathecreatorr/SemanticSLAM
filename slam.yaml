@@ -7,3 +7,7 @@ slam_toolbox:
     use_sim_time: false
     
     transform_timeout: 3.0
+
+    minimum_travel_distance: 0.2
+    minimum_travel_heading: 0.2
+    

@@ -10,7 +10,7 @@ char inputBuffer[64];
 int bufferIndex = 0;
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(500000);
 
     EncoderHandler::initEncoders();
     EncoderHandler::resetEncoders();
@@ -33,13 +33,12 @@ void processCommand(char* cmd) {
 }
 
 void loop() {
-
     while (Serial.available() > 0) {
         char c = Serial.read();
         if (c == '\n' || c == '\r') {
-            inputBuffer[bufferIndex] = '\0'; // Terminate string
+            inputBuffer[bufferIndex] = '\0';
             processCommand(inputBuffer);
-            bufferIndex = 0; // Reset for next command
+            bufferIndex = 0;
         } else if (bufferIndex < 63) {
             inputBuffer[bufferIndex++] = c;
         }
@@ -47,15 +46,20 @@ void loop() {
 
     if (millis() - lastStreamTime >= PUBLISH_INTERVAL_MS) {
         lastStreamTime = millis();
-        streamIMUData();
+        
+        Serial.print("DATA,"); 
+
+        streamIMUData(); 
+        Serial.print(","); 
 
         WheelTicks ticks = EncoderHandler::getEncoderTicks();
-        Serial.print("E,");
         Serial.print(ticks.fl); Serial.print(",");
         Serial.print(ticks.rl); Serial.print(",");
         Serial.print(ticks.fr); Serial.print(",");
-        Serial.println(ticks.rr);
+        Serial.print(ticks.rr);
 
+        Serial.println(); 
     }
+    
 }
 

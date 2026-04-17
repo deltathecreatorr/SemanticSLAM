@@ -32,6 +32,9 @@ then
 ```ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link imu_link```
 
 then
+```ros2 run imu_filter_madgwick imu_filter_madgwick_node --ros-args -p use_mag:=false -p publish_tf:=false```
+
+then
 ```ros2 run robot_localization ekf_node --ros-args --params-file ~/pi/SemanticSLAM/ekf.yaml -r odometry/filtered:=odom```
 
 Also run slam toolbox with the slam.yaml file using the command:

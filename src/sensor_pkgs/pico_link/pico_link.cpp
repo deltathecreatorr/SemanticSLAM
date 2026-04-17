@@ -38,8 +38,8 @@ void PicoLink::setup_serial() {
     }
     struct termios tty;
     tcgetattr(fd_, &tty);
-    cfsetispeed(&tty, B115200);
-    cfsetospeed(&tty, B115200);
+    cfsetispeed(&tty, B500000);
+    cfsetospeed(&tty, B500000);
 
     tty.c_cflag |= (CLOCAL | CREAD | CS8);
     tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); 
@@ -77,48 +77,67 @@ void PicoLink::read_loop() {
 }
 
 void PicoLink::process_line(const std::string& line) {
-    if (line.rfind("IMU,",0) == 0) {
-        float ax, ay, az, gx, gy, gz, mx, my, mz;
-        
-        int parsed = sscanf(line.c_str(), "IMU,%f,%f,%f,%f,%f,%f,%f,%f,%f", &ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-        
-        if (parsed == 9) {
-            auto msg = sensor_msgs::msg::Imu();
-            msg.header.stamp = this->now();
-            msg.header.frame_id = "imu_link";
-            msg.linear_acceleration.x = ax;
-            msg.linear_acceleration.y = ay;
-            msg.linear_acceleration.z = az;
-            msg.angular_velocity.x = gx;
-            msg.angular_velocity.y = gy;
-            msg.angular_velocity.z = gz;
+    std::stringstream ss(line);
+    std::string token;
+    std::vector<std::string> values;
 
-            imu_pub_->publish(msg);
+    while (std::getline(ss, token , ',')) {
+        values.push_back(token);
+    }
 
-            auto mag_msg = sensor_msgs::msg::MagneticField();
-            mag_msg.header.stamp = this->now();
-            mag_msg.header.frame_id = "imu_link";
-            mag_msg.magnetic_field.x = mx;
-            mag_msg.magnetic_field.y = my;
-            mag_msg.magnetic_field.z = mz;
+    if (values.empty()) {
+        return;
+    }
 
-            mag_pub_->publish(mag_msg);
-            
-            RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "SUCCESS: Publishing /imu/data_raw!");
-        } else {
-            RCLCPP_WARN(this->get_logger(), "Parse Failed! sscanf only found %d variables.", parsed);
-        }
-    } 
-    else if (line.rfind("E,",0) == 0) {
-        long fl, rl, fr, rr;
-        int parsed = sscanf(line.c_str(), "E,%ld,%ld,%ld,%ld", &fl, &rl, &fr, &rr);
-        
-        if (parsed == 4) {
-            auto msg = std_msgs::msg::Int32MultiArray();
-            msg.data = {static_cast<int>(fl), static_cast<int>(rl), static_cast<int>(fr), static_cast<int>(rr)};
-            enc_pub_->publish(msg);
+    if (values[0] == "IMU") {
+        if (values.size() >= 7) {
+            try {
+                auto msg = sensor_msgs::msg::Imu();
+                msg.header.stamp = this->now();
+                msg.header.frame_id = "imu_link";
+
+                auto safe_f = [](const std::string& s) {
+                    try {
+                        return s.empty() || s == "-" ? 0.0f : std::stof(s); 
+                    } catch (...) {
+                        return 0.0f;
+                    }
+                };
+
+                msg.linear_acceleration.x = safe_f(values[1]);
+                msg.linear_acceleration.y = safe_f(values[2]);
+                msg.linear_acceleration.z = safe_f(values[3]);
+
+                msg.angular_velocity.x = safe_f(values[4]);
+                msg.angular_velocity.y = safe_f(values[5]);
+                
+                msg.angular_velocity.z = safe_f(values[6]) * -1.0f;
+
+                imu_pub_->publish(msg);
+
+            } catch (const std::exception& e) {
+                RCLCPP_ERROR(this->get_logger(), "Error parsing IMU data: %s", e.what());
+            }
         }
     }
+
+    else if (values[0] == "E") {
+        if (values.size() >= 5) {
+            try {
+                auto msg = std_msgs::msg::Int32MultiArray();
+                msg.data = {
+                    std::stoi(values[1]),
+                    std::stoi(values[2]),
+                    std::stoi(values[3]),
+                    std::stoi(values[4])
+                };
+                enc_pub_->publish(msg);
+            } catch (const std::exception& e) {
+                RCLCPP_ERROR(this->get_logger(), "Error parsing encoder data: %s", e.what());
+            }
+        }
+    }
+
 }
 
 void PicoLink::cmd_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
@@ -126,8 +145,20 @@ void PicoLink::cmd_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
 
     int max_speed = this->get_parameter("MAX_SPEED").as_int();
 
+    const int MIN_PWM = 60;
+
     int left = static_cast<int>((msg->linear.x - msg->angular.z) * max_speed);
     int right = static_cast<int>((msg->linear.x + msg->angular.z) * max_speed);
+
+    auto apply_min_pwm = [MIN_PWM](int speed) {
+        if (speed == 0) return 0; 
+        if (speed > 0 && speed < MIN_PWM) return MIN_PWM;
+        if (speed < 0 && speed > -MIN_PWM) return -MIN_PWM;
+        return speed;
+    };
+
+    left = apply_min_pwm(left);
+    right = apply_min_pwm(right);
 
     left = std::clamp(left, -255, 255);
     right = std::clamp(right, -255, 255);
