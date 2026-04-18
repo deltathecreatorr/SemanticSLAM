@@ -11,6 +11,14 @@ def generate_launch_description():
     slam_config = os.path.join(semantic_slam_dir, 'slam.yaml')
     nav2_config = os.path.join(semantic_slam_dir, 'slam_nav2.yaml')
 
+    micro_ros_agent = Node(
+        package='micro_ros_agent',
+        executable='micro_ros_agent',
+        name='micro_ros_agent_node',
+        output='screen',
+        arguments=['serial', '--dev', '/dev/ttyACM0']
+    )
+
     pico_link = ExecuteProcess(
         cmd = [os.path.join(semantic_slam_dir, 'build/slam')],
         output = 'screen'
@@ -35,7 +43,7 @@ def generate_launch_description():
     laser_tf = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        arguments=['0', '0', '0.1', '0', '0', '0', 'base_link', 'base_laser']
+        arguments=['0', '0', '0.18', '0', '0', '0', 'base_link', 'base_laser']
     )
 
     madgwick_filter = Node(
@@ -86,6 +94,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        micro_ros_agent,
         pico_link,
         lidar_launch,
         static_transform,
@@ -94,5 +103,5 @@ def generate_launch_description():
         ekf_node,
         slam_toolbox,
         nav2_bringup,
-        explore_lite
+        #explore_lite
     ])

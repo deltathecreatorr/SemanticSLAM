@@ -17,17 +17,16 @@ bool initIMU() {
     return true;
 }
 
-void streamIMUData() {
+bool populateIMUMsg(sensor_msgs__msg__Imu* msg) {
     if (imu.readSensor()) {
-        Serial.print("IMU,");
-        Serial.print(imu.getAccelX_mss(), 4); Serial.print(",");
-        Serial.print(imu.getAccelY_mss(), 4); Serial.print(",");
-        Serial.print(imu.getAccelZ_mss(), 4); Serial.print(",");
-        Serial.print(imu.getGyroX_rads(), 4); Serial.print(",");
-        Serial.print(imu.getGyroY_rads(), 4); Serial.print(",");
-        Serial.print(imu.getGyroZ_rads(), 4); Serial.print(",");
-        Serial.print(imu.getMagX_uT(), 4); Serial.print(",");
-        Serial.print(imu.getMagY_uT(), 4); Serial.print(",");
-        Serial.println(imu.getMagZ_uT(), 4);
+        msg->linear_acceleration.x = imu.getAccelX_mss();
+        msg->linear_acceleration.y = imu.getAccelY_mss();
+        msg->linear_acceleration.z = imu.getAccelZ_mss();
+        
+        msg->angular_velocity.x = imu.getGyroX_rads();
+        msg->angular_velocity.y = imu.getGyroY_rads();
+        msg->angular_velocity.z = imu.getGyroZ_rads() * -1.0; // The Z-flip!
+        return true;
     }
+    return false;
 }

@@ -19,7 +19,7 @@ EncoderNode::EncoderNode() : Node("encoder_processor_node") {
     cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
         "cmd_vel", 10, std::bind(&EncoderNode::cmd_callback, this, std::placeholders::_1), cmd_opt);
     
-    odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+    odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom/unfiltered", 10);
 
     motor_pub_ = this->create_publisher<std_msgs::msg::Int32MultiArray>("motor_commands", 10);
 
@@ -52,7 +52,7 @@ void EncoderNode::cmd_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
         e_Sum_r_r = 0.0;
     }
 
-    RCLCPP_DEBUG(this->get_logger(), "L: %.2f m/s, R: %.2f m/s", target_vel_l_, target_vel_r_);
+    RCLCPP_INFO(this->get_logger(), "L: %.2f m/s, R: %.2f m/s", target_vel_l_, target_vel_r_);
 }
 
 void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedPtr msg) {
@@ -163,28 +163,20 @@ void EncoderNode::encoder_callback(const std_msgs::msg::Int32MultiArray::SharedP
 
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
 
-    // geometry_msgs::msg::TransformStamped odm_transform;
-    // odm_transform.header.stamp = current_time;
-    // odm_transform.header.frame_id = "odom";
-    // odm_transform.child_frame_id = "base_link";
+    geometry_msgs::msg::TransformStamped odm_transform;
+    odm_transform.header.stamp = current_time;
+    odm_transform.header.frame_id = "odom";
+    odm_transform.child_frame_id = "base_link";
 
-    // odm_transform.transform.translation.x = x_;
-    // odm_transform.transform.translation.y = y_;
-    // odm_transform.transform.translation.z = 0.0;
+    odm_transform.transform.translation.x = x_;
+    odm_transform.transform.translation.y = y_;
+    odm_transform.transform.translation.z = 0.0;
 
-    // odm_transform.transform.rotation.x = q.x();
-    // odm_transform.transform.rotation.y = q.y();
-    // odm_transform.transform.rotation.z = q.z();
-    // odm_transform.transform.rotation.w = q.w();
-    // transforms.push_back(odm_transform);
-
-    geometry_msgs::msg::TransformStamped laser_transform;
-    laser_transform.header.stamp = current_time;
-    laser_transform.header.frame_id = "base_link";
-    laser_transform.child_frame_id = "base_laser";
-    laser_transform.transform.translation.z = 0.18;
-    laser_transform.transform.rotation.w = 1.0;
-    transforms.push_back(laser_transform);
+    odm_transform.transform.rotation.x = q.x();
+    odm_transform.transform.rotation.y = q.y();
+    odm_transform.transform.rotation.z = q.z();
+    odm_transform.transform.rotation.w = q.w();
+    transforms.push_back(odm_transform);
 
     tf_broadcaster_->sendTransform(transforms);
 
