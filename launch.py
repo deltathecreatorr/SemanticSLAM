@@ -1,6 +1,6 @@
 import os
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, ExecuteProcess
+from launch.actions import IncludeLaunchDescription, ExecuteProcess, TimerAction, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
@@ -10,13 +10,17 @@ def generate_launch_description():
     ekf_config = os.path.join(semantic_slam_dir, 'ekf.yaml')
     slam_config = os.path.join(semantic_slam_dir, 'slam.yaml')
     nav2_config = os.path.join(semantic_slam_dir, 'slam_nav2.yaml')
+    filter_config = os.path.join(semantic_slam_dir, 'laser_filter.yaml')
+    explore_config = os.path.join(semantic_slam_dir, 'explore.yaml')
+
+    use_sim_time_param = {'use_sim_time': False}
 
     micro_ros_agent = Node(
         package='micro_ros_agent',
         executable='micro_ros_agent',
         name='micro_ros_agent_node',
         output='screen',
-        arguments=['serial', '--dev', '/dev/ttyACM0']
+        arguments=['serial', '--dev', '/dev/pico_robot'] 
     )
 
     pico_link = ExecuteProcess(
@@ -31,28 +35,52 @@ def generate_launch_description():
                 'launch',
                 'ld06.launch.py'
             )
-        ])
+        ]),
+        launch_arguments={'use_sim_time': 'false'}.items()
     )
 
     static_transform = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'imu_link']
+        name='base_link_to_imu',
+        arguments=[
+            '--x', '0.0', 
+            '--y', '0.0', 
+            '--z', '0.0', 
+            '--yaw', '0.0', 
+            '--pitch', '0.0', 
+            '--roll', '0.0', 
+            '--frame-id', 'base_link', 
+            '--child-frame-id', 'imu_link'
+        ],
+        parameters=[use_sim_time_param]
     )
 
     laser_tf = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        arguments=['0', '0', '0.18', '0', '0', '0', 'base_link', 'base_laser']
+        name='base_link_to_laser',
+        arguments=[
+            '--x', '0.0', 
+            '--y', '0.0', 
+            '--z', '0.18', 
+            '--yaw', '0.0', 
+            '--pitch', '0.035',  
+            '--roll', '0.0', 
+            '--frame-id', 'base_link', 
+            '--child-frame-id', 'base_laser'
+        ],
+        parameters=[use_sim_time_param]
     )
 
     madgwick_filter = Node(
         package = 'imu_filter_madgwick',
         executable = 'imu_filter_madgwick_node',
-        parameters = [{
+        parameters = [use_sim_time_param, {
             'use_mag': False,
             'publish_tf': False,
             'world_frame': 'enu',
+            'orientation_stddev': 0.05,
         }],
         remappings=[('/imu/data_raw', '/imu/data_raw')]
     )
@@ -62,7 +90,7 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_filter_node',
         output='screen',
-        parameters=[ekf_config],
+        parameters=[ekf_config, use_sim_time_param],
         remappings=[('/odometry/filtered', '/odom')]
     )
 
@@ -86,22 +114,48 @@ def generate_launch_description():
         }.items()
     )
 
-    explore_lite = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('explore_lite'), 'launch', 'explore.launch.py')
-        ]),
-        launch_arguments={'use_sim_time': 'false'}.items()
+    laser_filter = Node(
+        package='laser_filters',
+        executable='scan_to_scan_filter_chain',
+        name='laser_filter_node',
+        parameters=[filter_config],
+    )
+
+    explore_node = Node(
+        package='explore_lite',
+        executable='explore',
+        name='explore_node',
+        parameters=['/home/delta/pi/SemanticSLAM/explore.yaml', {'use_sim_time': False}],
+        output='screen'
+    )
+
+    delayed_brain_bringup = TimerAction(
+        period=5.0,
+        actions=[
+            LogInfo(msg="=== IMU CALIBRATED! BOOTING EKF, SLAM, AND NAV2 ==="),
+            ekf_node,
+            slam_toolbox,
+            nav2_bringup,
+            laser_filter,
+        ]
+    )
+    
+    delayed_explore_launch = TimerAction(
+        period=15.0,
+        actions=[
+            LogInfo(msg="=== NAV2 BOOTED! STARTING EXPLORATION ==="),
+            explore_node
+        ]
     )
 
     return LaunchDescription([
-        micro_ros_agent,
+        LogInfo(msg="=== CALIBRATING IMU FOR 10 SECONDS ==="),
+        # micro_ros_agent
         pico_link,
         lidar_launch,
         static_transform,
         laser_tf,
         madgwick_filter,
-        ekf_node,
-        slam_toolbox,
-        nav2_bringup,
-        #explore_lite
+        delayed_brain_bringup,
+        delayed_explore_launch
     ])

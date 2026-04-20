@@ -12,14 +12,16 @@ ekf_filter_node:
     odom0: /odom/unfiltered
     odom0_config: [false, false, false,
                    false, false, false,
-                   true,  true,  false,
+                   true,  false,  false,
                    false, false, true,
                    false, false, false]
+    odom0_mahalanobis_dist: 0.8
 
     # IMU
     imu0: /imu/data
     imu0_config: [false, false, false,
-                  false, false, true,
+                  false, false, false,
                   false, false, false,
                   false, false, true,
                   false, false, false]
+    imu0_mahalanobis_dist: 0.8

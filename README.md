@@ -46,6 +46,16 @@ Nav2 can be run using the command:
 Explore_lite can be run using this command:
 ```ros2 launch explore_lite explore.launch.py use_sim_time:=false```
 
+The program can also be run using the following three commands:
+
+```ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/pico_robot```
+
+```ros2 launch launch.py```
+
+```ros2 launch explore_lite explore.launch.py use_sim_time:=false```
+
+
+
 ## Robot Car Parts
 
 * [Raspberry Pi 5 8GB](https://thepihut.com/collections/raspberry-pi)

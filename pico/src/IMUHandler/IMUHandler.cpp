@@ -11,6 +11,8 @@ bool initIMU() {
         return false;
     }
 
+    imu.calibrateGyro();
+
     imu.setAccelRange(MPU9250::ACCEL_RANGE_4G);
     imu.setGyroRange(MPU9250::GYRO_RANGE_500DPS);
 

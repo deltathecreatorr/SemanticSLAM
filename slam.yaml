@@ -3,11 +3,17 @@ slam_toolbox:
     odom_frame: odom
     map_frame: map
     base_frame: base_link
-    scan_topic: /scan
+    scan_topic: /scan_filtered
     use_sim_time: false
-    
-    transform_timeout: 3.0
-
-    minimum_travel_distance: 0.2
+    resolution: 0.1
+    transform_timeout: 0.2
+    scan_buffer_size: 10
+    map_update_interval: 2.0
+    minimum_travel_distance: 0.1
     minimum_travel_heading: 0.2
+    max_laser_range: 5.0
+    minimum_time_interval: 0.4
+    loop_search_maximum_distance: 3.0
+    transform_publish_period: 0.05
+    throttle_scans: 1
     

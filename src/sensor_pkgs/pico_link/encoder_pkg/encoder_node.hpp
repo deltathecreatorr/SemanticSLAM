@@ -31,9 +31,9 @@ class EncoderNode : public rclcpp::Node {
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
         std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 
-        const double WHEEL_RADIUS = 0.0750;
-        const double TRACK_WIDTH = 0.225;
-        const double TICKS_PER_REV = 960.0;
+        const double WHEEL_RADIUS = 0.0325;
+        const double TRACK_WIDTH = 0.240;
+        const double TICKS_PER_REV = 1920;
 
         double x_;
         double y_; 

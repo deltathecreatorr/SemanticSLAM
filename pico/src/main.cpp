@@ -7,6 +7,7 @@
 #include <sensor_msgs/msg/imu.h>
 #include <std_msgs/msg/int32_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
+#include <rmw_microros/rmw_microros.h>
 
 #include "EncoderHandler/EncoderHandler.hpp"
 #include "IMUHandler/IMUHandler.hpp"
@@ -29,7 +30,7 @@ rcl_node_t node;
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){while(1){};}}
 
 unsigned long lastStreamTime = 0;
-const int PUBLISH_INTERVAL_MS = 20;
+const int PUBLISH_INTERVAL_MS = 50;
 
 void motor_callback(const void * msgin) {
     const std_msgs__msg__Int32MultiArray * msg = (const std_msgs__msg__Int32MultiArray *)msgin;
@@ -58,6 +59,12 @@ void setup() {
     }
 
     RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+
+     while (!rmw_uros_epoch_synchronized()) {
+        rmw_uros_sync_session(1000);
+        delay(100);
+    }
+
     RCCHECK(rclc_node_init_default(&node, "pico_node", "", &support));
 
     RCCHECK(rclc_publisher_init_default(
@@ -100,8 +107,22 @@ void setup() {
 void loop() {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
 
+    static unsigned long last_ping_time = 0;
+    if (millis() - last_ping_time > 2000) { // Check connection every 2 seconds
+        last_ping_time = millis();
+        
+        if (rmw_uros_ping_agent(50, 1) != RMW_RET_OK) {
+            NVIC_SystemReset(); 
+        }
+    }
+
     if (millis() - lastStreamTime >= PUBLISH_INTERVAL_MS) {
         lastStreamTime = millis();
+        
+
+        int64_t time_ns = rmw_uros_epoch_nanos();
+        imu_msg.header.stamp.sec = time_ns / 1000000000;
+        imu_msg.header.stamp.nanosec = time_ns % 1000000000;
         
         if (populateIMUMsg(&imu_msg)) {
             rcl_publish(&imu_publisher, &imu_msg, NULL);
