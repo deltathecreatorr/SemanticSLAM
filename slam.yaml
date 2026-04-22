@@ -13,7 +13,7 @@ slam_toolbox:
     minimum_travel_heading: 0.2
     max_laser_range: 5.0
     minimum_time_interval: 0.4
-    loop_search_maximum_distance: 3.0
+    loop_search_maximum_distance: 1.5
     transform_publish_period: 0.05
     throttle_scans: 1
     

@@ -19,13 +19,15 @@ def generate_launch_description():
         package='micro_ros_agent',
         executable='micro_ros_agent',
         name='micro_ros_agent_node',
-        output='screen',
-        arguments=['serial', '--dev', '/dev/pico_robot'] 
+        output='both',
+        arguments=['serial', '--dev', '/dev/pico_robot'],
+        emulate_tty = True
     )
 
     pico_link = ExecuteProcess(
         cmd = [os.path.join(semantic_slam_dir, 'build/slam')],
-        output = 'screen'
+        output = 'both',
+        emulate_tty = True
     )
 
     lidar_launch = IncludeLaunchDescription(
@@ -53,7 +55,9 @@ def generate_launch_description():
             '--frame-id', 'base_link', 
             '--child-frame-id', 'imu_link'
         ],
-        parameters=[use_sim_time_param]
+        parameters=[use_sim_time_param],
+        output='both',
+        emulate_tty = True
     )
 
     laser_tf = Node(
@@ -70,7 +74,9 @@ def generate_launch_description():
             '--frame-id', 'base_link', 
             '--child-frame-id', 'base_laser'
         ],
-        parameters=[use_sim_time_param]
+        parameters=[use_sim_time_param],
+        output='both',
+        emulate_tty = True
     )
 
     madgwick_filter = Node(
@@ -82,16 +88,19 @@ def generate_launch_description():
             'world_frame': 'enu',
             'orientation_stddev': 0.05,
         }],
-        remappings=[('/imu/data_raw', '/imu/data_raw')]
+        remappings=[('/imu/data_raw', '/imu/data_raw')],
+        output = 'both',
+        emulate_tty = True
     )
 
     ekf_node = Node(
         package='robot_localization',
         executable='ekf_node',
         name='ekf_filter_node',
-        output='screen',
+        output='both',
         parameters=[ekf_config, use_sim_time_param],
-        remappings=[('/odometry/filtered', '/odom')]
+        remappings=[('/odometry/filtered', '/odom')],
+        emulate_tty = True
     )
 
     slam_toolbox = IncludeLaunchDescription(
@@ -119,6 +128,8 @@ def generate_launch_description():
         executable='scan_to_scan_filter_chain',
         name='laser_filter_node',
         parameters=[filter_config],
+        output='both',
+        emulate_tty = True
     )
 
     explore_node = Node(
@@ -126,7 +137,41 @@ def generate_launch_description():
         executable='explore',
         name='explore_node',
         parameters=['/home/delta/pi/SemanticSLAM/explore.yaml', {'use_sim_time': False}],
-        output='screen'
+        output='both',
+        emulate_tty = True
+    )
+
+    yolo_node = Node(
+        package = 'semantic_detector',
+        executable = 'yolo_node',
+        name = 'yolo_detector',
+        prefix = ['taskset -c 3 '],
+        parameters=[{
+        'model_path': '/home/delta/pi/ros2_ws/src/semantic_detector/semantic_detector/yolo26n.onnx'
+        }],
+        output = 'both',
+        emulate_tty = True
+    )
+
+    projector_node = Node(
+        package = 'semantic_detector',
+        executable = 'projector_node',
+        name = 'semantic_projector',
+        prefix = ['taskset -c 3 '],
+        parameters=[{'camera_height': 0.07}],
+        output = 'both',
+        emulate_tty = True
+    )
+
+    heatmap_node = Node(
+        package = 'semantic_detector',
+        executable = 'heatmap_node',
+        name = 'semantic_heatmap',
+        prefix = ['taskset -c 3 '],
+        parameters=[{'camera_height': 0.07}],
+        output = 'both',
+        emulate_tty = True
+
     )
 
     delayed_brain_bringup = TimerAction(
@@ -144,7 +189,10 @@ def generate_launch_description():
         period=15.0,
         actions=[
             LogInfo(msg="=== NAV2 BOOTED! STARTING EXPLORATION ==="),
-            explore_node
+            explore_node,
+            yolo_node,
+            projector_node,
+            heatmap_node
         ]
     )
 

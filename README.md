@@ -48,9 +48,17 @@ Explore_lite can be run using this command:
 
 The program can also be run using the following three commands:
 
+```sudo killall -9 libcamerify```
+
+```sudo killall -9 v4l2_camera_node```
+
+```libcamerify ros2 run v4l2_camera v4l2_camera_node --ros-args -p image_size:="[640,480]"```
+
+
+
 ```ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/pico_robot```
 
-```ros2 launch launch.py```
+```taskset -c 0,1,2 ros2 launch launch.py```
 
 ```ros2 launch explore_lite explore.launch.py use_sim_time:=false```
 
