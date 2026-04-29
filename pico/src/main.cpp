@@ -8,10 +8,12 @@
 #include <std_msgs/msg/int32_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
 #include <rmw_microros/rmw_microros.h>
+#include <MadgwickAHRS.h>
 
 #include "EncoderHandler/EncoderHandler.hpp"
 #include "IMUHandler/IMUHandler.hpp"
 #include "MotorDrivers/MotorDrivers.hpp"
+#define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
 rcl_publisher_t imu_publisher;
 sensor_msgs__msg__Imu imu_msg;
@@ -27,6 +29,8 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 
+Madgwick filter;
+
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){while(1){};}}
 
 unsigned long lastStreamTime = 0;
@@ -35,12 +39,8 @@ const int PUBLISH_INTERVAL_MS = 50;
 void motor_callback(const void * msgin) {
     const std_msgs__msg__Int32MultiArray * msg = (const std_msgs__msg__Int32MultiArray *)msgin;
 
-    
-    if (msg->data.size >= 2) {
-        int left_pwm = msg->data.data[0];
-        int right_pwm = msg->data.data[1];
-
-        setMotorSpeeds(left_pwm, left_pwm, right_pwm, right_pwm);
+    if (msg->data.size >= 4) {
+        setMotorSpeeds(msg->data.data[0], msg->data.data[1], msg->data.data[2], msg->data.data[3]);
     }
 }
 
@@ -71,10 +71,12 @@ void setup() {
         &imu_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-        "imu/data_raw"));
+        "imu/data"));
 
     imu_msg.header.frame_id.data = (char*)"imu_link";
     imu_msg.header.frame_id.size = strlen(imu_msg.header.frame_id.data);
+
+    filter.begin(100.0);
 
     RCCHECK(rclc_publisher_init_default(&enc_publisher, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray), "wheel_ticks"));
@@ -91,7 +93,7 @@ void setup() {
         &motor_subscriber, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray), "motor_commands"));
 
-    motor_cmd_msg.data.capacity = 2;
+    motor_cmd_msg.data.capacity = 4;
     motor_cmd_msg.data.size = 0;
     motor_cmd_msg.data.data = (int32_t*) malloc(motor_cmd_msg.data.capacity * sizeof(int32_t));
     motor_cmd_msg.layout.dim.capacity = 0;
@@ -107,26 +109,63 @@ void setup() {
 void loop() {
     rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
 
+    unsigned long current_time = millis();
+
     static unsigned long last_ping_time = 0;
-    if (millis() - last_ping_time > 2000) { // Check connection every 2 seconds
+    if (millis() - last_ping_time > 2000) {
         last_ping_time = millis();
         
-        if (rmw_uros_ping_agent(50, 1) != RMW_RET_OK) {
+        if (rmw_uros_ping_agent(100, 3) != RMW_RET_OK) {
+            stopMotors();
+            delay(500);
             NVIC_SystemReset(); 
         }
     }
 
-    if (millis() - lastStreamTime >= PUBLISH_INTERVAL_MS) {
-        lastStreamTime = millis();
-        
+    static unsigned long last_filter_time = 0;
+    if (current_time - last_filter_time >= 10) {
+        last_filter_time = current_time;
+
+        if (populateIMUMsg(&imu_msg)) {
+            float gx = imu_msg.angular_velocity.x;
+            float gy = imu_msg.angular_velocity.y;
+            float gz = imu_msg.angular_velocity.z;
+            float ax = imu_msg.linear_acceleration.x;
+            float ay = imu_msg.linear_acceleration.y;
+            float az = imu_msg.linear_acceleration.z;
+
+            float gx_deg = gx * 180.0 / M_PI;
+            float gy_deg = gy * 180.0 / M_PI;
+            float gz_deg = gz * 180.0 / M_PI;
+
+            filter.updateIMU(gx_deg, gy_deg, gz_deg, ax, ay, az);
+        }
+    }
+
+    if (current_time - lastStreamTime >= PUBLISH_INTERVAL_MS) {
+        lastStreamTime = current_time;
 
         int64_t time_ns = rmw_uros_epoch_nanos();
         imu_msg.header.stamp.sec = time_ns / 1000000000;
         imu_msg.header.stamp.nanosec = time_ns % 1000000000;
-        
-        if (populateIMUMsg(&imu_msg)) {
-            rcl_publish(&imu_publisher, &imu_msg, NULL);
-        }
+
+        float roll = filter.getRollRadians();
+        float pitch = filter.getPitchRadians();
+        float yaw = filter.getYawRadians();
+
+        float cr = cos(roll *0.5f);
+        float sr = sin(roll *0.5f);
+        float cp = cos(pitch *0.5f);
+        float sp = sin(pitch *0.5f);
+        float cy = cos(yaw *0.5f);
+        float sy = sin(yaw *0.5f);
+
+        imu_msg.orientation.w = cr * cp * cy + sr * sp * sy;
+        imu_msg.orientation.x = sr * cp * cy - cr * sp * sy;
+        imu_msg.orientation.y = cr * sp * cy + sr * cp * sy;
+        imu_msg.orientation.z = cr * cp * sy - sr * sp * cy;
+
+        RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
 
         WheelTicks ticks = EncoderHandler::getEncoderTicks();
         enc_msg.data.data[0] = ticks.fl;
@@ -134,7 +173,6 @@ void loop() {
         enc_msg.data.data[2] = ticks.fr;
         enc_msg.data.data[3] = ticks.rr;
         
-        rcl_publish(&enc_publisher, &enc_msg, NULL);
-
+        RCSOFTCHECK(rcl_publish(&enc_publisher, &enc_msg, NULL));
     }
 }

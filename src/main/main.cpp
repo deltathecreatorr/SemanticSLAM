@@ -1,5 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
-#include "sensor_pkgs/pico_link/encoder_pkg/encoder_node.hpp"
+#include "sensor_pkgs/pico_link/sensor_pkg/sensor_node.hpp"
 
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
