@@ -1,4 +1,4 @@
 Metric,Average,Peak
-YOLO FPS,2.7,2.9
-CPU Load (%),41.9,67.1
-RAM Usage (MB),383.9,384.2
+YOLO FPS,2.5,2.7
+CPU Load (%),45.1,66.1
+RAM Usage (MB),382.3,382.6

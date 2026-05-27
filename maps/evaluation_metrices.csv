@@ -1,5 +1,5 @@
 Class,Ground Truth,Detected,True Positives,False Positives,False Negatives
-book,2,1,1,0,1
+book,2,0,0,0,2
 bottle,1,0,0,0,1
 chair,1,0,0,0,1
 couch,1,0,0,0,1
