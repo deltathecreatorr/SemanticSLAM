@@ -18,35 +18,37 @@ This project can be built on any operating system supported by CMake.
 
 Clone the repository and please install the CMake compiler before trying to build this project.
 
-In a different terminal, run the ros2 lidar node so it can be read by the SLAM program:
-
-```ros2 launch ldlidar_stl_ros2 ld06.launch.py```
-
-Afterwards, use the commands to run the main SLAM algorithm:
+Use the commands to build the main SLAM algorithm:
 
 ```cmake --build build```
  then 
 ```./build/slam```
 
-Also run slam toolbox with the slam.yaml file using the command
-```ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./slam.yaml```
-
+The entire Semantic SLAM pipeline can be started using
+```stdbuf -oL -eL ros2 launch launch.py 2>&1 | tee ~/pi/SemanticSLAM/master_session.log```
+to see all the logs associated for each output from the launch.py.
 
 ## Robot Car Parts
 
 * [Raspberry Pi 5 8GB](https://thepihut.com/collections/raspberry-pi)
+* [Raspberry Pi Pico](https://thepihut.com/products/raspberry-pi-pico)
 * [Mecanum MP Robot Chassis Kit](https://www.waveshare.com/robot-chassis.htm)
-* [Raspberry Pi AI Camera Module](https://thepihut.com/products/raspberry-pi-ai-camera)
+* [Raspberry Pi Camera Module 2](https://thepihut.com/products/raspberry-pi-camera-module)
 * [Uninterruptible Power Supply UPS HAT (B) for Raspberry Pi](https://thepihut.com/products/uninterruptible-power-supply-ups-hat-b-for-raspberry-pi)
 * [4 DRV8871 Motor Drivers](https://thepihut.com/products/adafruit-drv8871-dc-motor-driver-breakout-board-3-6a-max)
 * [4 TT Motors with Encoders Attached](https://thepihut.com/products/tt-motor-with-encoder-6v-160rpm-120-1)
 * [7.2 Ni-MH Battery Pack](https://thepihut.com/products/tt-motor-with-encoder-6v-160rpm-120-1)
 * [OKDO Lidar Hat for the Raspberry PI](https://uk.rs-online.com/web/p/sensor-development-tools/2037609)
-* [8-Channel Logic Level Converter Bi-directional Converter](https://www.amazon.co.uk/DollaTek-Channel-Bi-directional-Converter-TXS0108E/dp/B07DK6QGHG?crid=S5TQWTC5NRIN&dib=eyJ2IjoiMSJ9.1CE4b0dkFsEPCG2fmbxsUV8_m9kvFHZ5gD6jM0pFrV5qNLAENTCtQ8vgsc7HGDXzTc3WsrcizZEJ2vcWHEQKohpznySr4jaaKHV80H_TTY9F8ZgUkRRlZ9Uz-OjQ9XGy8Cjb-kbQHLenoSmB3KJMAIcUmWcAnKlI58B9H4322B5GvYJb0oRu4eWIucBxW8gXAEyKg5aQPMso1TLn4OZwJWTPKSCTPvySD6FfVj5o-Fv7_-9o98VOXpP_1YwPkTxobT9xmko-OS2EeFIDa4bhjfqOveusZGTovivWeCHvhmM.Iu3RCIus-Y62_KzBzLlUzOrwToNR0qncwUowhD6-Kws&dib_tag=se&keywords=dollatek+logic+level+converter&qid=1772892667&sprefix=dollatek+logic+level+convert%2Caps%2C228&sr=8-1)
-* [Dollatek MPU-6050 Inertial Measurement Unit](https://www.amazon.co.uk/DollaTek-MPU-6050-mpu6050-Accelerometer-Arduino/dp/B07DJ4KMBF?crid=3IIHAC5K5TAJS&dib=eyJ2IjoiMSJ9.AD3UVa4HQO0WjS3ZhZH_5k4BSWfYpejUI-FgRuhNWr5ZZYuMRVjefJFODQQ23Qyk0lrRnF77RN9C1iCO22gYrVAuU--vQlnVv872_gkfVWpl5M5z52UbrUsPQOG13m2tW5PgYqnn8qm3yqYAhSOOdY1hMZkP7v84VPnl4jxDRLRNtFXUJX_WUEvP0iwhY3tuZOLNpN0CDcROyBUfSuxOwSzUATrlRx3JsZSUPH_ukyJ6iuM2fm6-PTseKhHJx37ZIprvYOkwvdDdKtJPFiF180SF6JSB0sHp9tRG4-BEthE.GqEzbJoANyYypNNDUlEHJUZ4_wOJBVIcOHcThXbJhk0&dib_tag=se&keywords=dollatek+mpu-6050&qid=1773937329&sprefix=dollatek+mpu-6050%2Caps%2C266&sr=8-1)
+* [Dollatek MPU-9250 10-DOF Inertial Measurement Unit](https://www.amazon.co.uk/Lecreatekit-MPU-9250-Accelerometer-Gyroscope-Projects/dp/B0GWQH8Y9W?source=ps-sl-shoppingads-lpcontext&psc=1&smid=A89657MOZG5L6)
+* [8-Channel Optocoupler Isolation Board](https://www.amazon.co.uk/Optocoupler-Isolation-12V-24V-8-Channel-Converter/dp/B08LVXK6L2?source=ps-sl-shoppingads-lpcontext&psc=1&smid=A2EOCSXVRJQVRR)
 
 ## Wiring Diagram
 ![Wiring Diagram for the Semantic SLAM robot.](images/wiring.svg)
+
+## Results
+The results seen from the semantic pipeline are from an rviz2 instance showing the semantic map created. The results were not as expected as the assumption that the camera was parallel with the ground, due to no depth camera, was severely inhibiting the localisation of the items on the map. The map created and the robot moving where incredibly slow due to running a object detection model and a graph SLAM algorithm on the same CPU.
+
+![Results for Semantic SLAM](images/Screenshot%202026-04-29%20095742.png)
 
 ## License
 

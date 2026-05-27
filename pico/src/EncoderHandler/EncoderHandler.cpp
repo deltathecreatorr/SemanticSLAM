@@ -1,10 +1,5 @@
 #include "EncoderHandler.hpp"
 
-int RL_A = 21; int RL_B = 20;
-int FL_A = 14; int FL_B = 15; 
-int RR_A = 27; int RR_B = 28;
-int FR_A = 11; int FR_B = 12;
-
 volatile long EncoderHandler::fl_ticks = 0;
 volatile long EncoderHandler::rl_ticks = 0;
 volatile long EncoderHandler::fr_ticks = 0;

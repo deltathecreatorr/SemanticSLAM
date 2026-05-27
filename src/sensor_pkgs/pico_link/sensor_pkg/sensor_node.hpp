@@ -31,27 +31,34 @@ class EncoderNode : public rclcpp::Node {
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
         std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 
-        const double WHEEL_RADIUS = 0.0750;
-        const double TRACK_WIDTH = 0.225;
-        const double TICKS_PER_REV = 960.0;
+        const double WHEEL_RADIUS = 0.0325;
+        const double TRACK_WIDTH = 0.240;
+        const double TICKS_PER_REV = 1920;
 
         double x_;
         double y_; 
         double theta_;
-        double prev_left_ticks_;
-        double prev_right_ticks_;
         rclcpp::Time last_time_;
         bool first_read_;
 
-        double target_vel_l_ = 0.0;
-        double target_vel_r_ = 0.0;
+        double target_vel_fl_ = 0.0;
+        double target_vel_fr_ = 0.0;
+        double target_vel_rl_ = 0.0;
+        double target_vel_rr_ = 0.0;
 
-        const double Kp = 400.0;
-        const double Ki = 100.0;
-        const double Kd = 10.0;
+        const double Kp = 2500.0;
+        const double Ki = 200.0;
+        const double Kd = 5.0;
 
-        double e_Sum_l_r = 0.0, prev_e_l_ = 0.0;
-        double e_Sum_r_r = 0.0, prev_e_r_ = 0.0;
+        double e_sum_fl = 0.0, prev_e_fl_ = 0.0;
+        double e_sum_fr = 0.0, prev_e_fr_ = 0.0;
+        double e_sum_rl = 0.0, prev_e_rl_ = 0.0;
+        double e_sum_rr = 0.0, prev_e_rr_ = 0.0;
+
+        double prev_fl_ticks_ = 0.0;
+        double prev_fr_ticks_ = 0.0;
+        double prev_rl_ticks_ = 0.0;
+        double prev_rr_ticks_ = 0.0;
 };
 
 #endif

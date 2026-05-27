@@ -4,7 +4,9 @@
 #include <Arduino.h>
 #include "MPU9250.h"
 
+#include <sensor_msgs/msg/imu.h>
+
 bool initIMU();
-void streamIMUData();
+bool populateIMUMsg(sensor_msgs__msg__Imu* msg);
 
 #endif
